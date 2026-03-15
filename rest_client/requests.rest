@@ -1,0 +1,21 @@
+###
+
+POST http://localhost:3000/auth/singup
+Content-Type: application/json
+
+{
+  "username": "diego_czajka",
+  "email": "diego.czajka@gmail.com",
+  "password": "Validation!!123"
+}
+
+###
+
+
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "email": "diego.czajka@gmail.com",
+  "password": "Validation!!123"
+}
