@@ -3,6 +3,7 @@ import {
   UserDTO,
 } from '../../domain/repositories/user.repository'
 import { User } from '../../domain/entities/user'
+import { Professional } from '../../domain/entities/professional'
 import { db } from '../db/drizzle'
 import { users } from '../db/schema'
 import { eq } from 'drizzle-orm'
@@ -10,14 +11,24 @@ import { Role } from '../../domain/entities/role'
 
 export class UserRepositoryImpl implements UserRepository {
   async create(user: User): Promise<void> {
-    await db.insert(users).values({
+    const values: any = {
       id: user.id,
       email: user.email,
       auth_id: user.authId,
       createdAt: user.createdAt,
       username: user.username,
       role: user.role,
-    })
+    }
+
+    // Adicionar campos específicos do Professional se for um Professional
+    if (user.role === 'health_professional') {
+      const professional = user as Professional
+      values.licenseNumber = professional.licenseNumber
+      values.specialty = professional.specialty
+      values.yearsOfExperience = professional.yearsOfExperience
+    }
+
+    await db.insert(users).values(values)
   }
 
   async findById(id: string): Promise<UserDTO | null> {
@@ -46,6 +57,12 @@ export class UserRepositoryImpl implements UserRepository {
       createdAt: row.createdAt,
       authId: row.auth_id,
       role: Role.create(row.role),
+      ...(row.role === 'health_professional' &&
+        row.licenseNumber && {
+          licenseNumber: row.licenseNumber,
+          specialty: row.specialty || undefined,
+          yearsOfExperience: row.yearsOfExperience || undefined,
+        }),
     }
   }
 }

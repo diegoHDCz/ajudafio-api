@@ -7,6 +7,10 @@ export interface UserDTO {
   createdAt: Date | null
   authId?: string | null
   role?: Role | null
+  // Campos específicos do Professional (opcionais)
+  licenseNumber?: string
+  specialty?: string
+  yearsOfExperience?: number
 }
 
 export interface UserRepository {
