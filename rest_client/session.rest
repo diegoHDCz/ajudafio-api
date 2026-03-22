@@ -1,0 +1,34 @@
+# Token JWT do Clerk para autenticação
+# "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJlaXMiOjM2MDAsImV4cCI6MTc3NDIwNDM3NywiaWlkIjoiaW5zXzNBd0lLU0c4Mkg0bjJ2VTdtYXBxVWthU2VIayIsInNpZCI6InNpdF8zQkpJV1F0OXpOWUhVd3FtRWxTRXE2ejFVSlIiLCJzdCI6InNpZ25faW5fdG9rZW4ifQ.cGcwc73FcLL2s8NYSi2UHFyDs4QWBQR7tuRYHgIZjf8EdmNbzU2-9fkSD499Pje0qmPHfslRbQIAUs_3apSbtgOh0KvUGpw1l60XfIWWeMtEr-Xari5W41h1r3Pg8KxTc6OaWxRoI3Z4OzLWTANURx9w2YsSrCsW4qK1uAUUlAeSSNZXNQdNhV3agrwOH-lJpEloTNCLN3MQ82pikEvASIrq9qQhwFr9wVoQtNSdcOI_VR0dt25waa0-8gXVescsRksegX6Pqqf8qwqxHKBrrUxwttauYsdSOoCcTaMkrO4waSYaDpLCz699U4y-iSCEfWPde6R9FHfbQi9VH5ydcA"
+
+###
+
+POST http://localhost:3000/sessions
+Content-Type: application/json
+
+{
+  "userId": "user_3AxfJs59aHBVSatUJJ0pP95xlG0"
+}
+
+###
+
+POST http://localhost:3000/sessions/sess_3BJIegmxRutmcxmwYcvZgitY7FB/tokens
+Content-Type: application/json
+
+{
+  "template": "neon"
+}
+
+###
+
+POST http://localhost:3000/sessions/session_789/tokens
+Content-Type: application/json
+
+{
+  "template": "neon"
+}
+###
+
+# Teste de rota protegida usando o token JWT
+GET http://localhost:3000/users/me
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJlaXMiOjM2MDAsImV4cCI6MTc3NDIwNDM3NywiaWlkIjoiaW5zXzNBd0lLU0c4Mkg0bjJ2VTdtYXBxVWthU2VIayIsInNpZCI6InNpdF8zQkpJV1F0OXpOWUhVd3FtRWxTRXE2ejFVSlIiLCJzdCI6InNpZ25faW5fdG9rZW4ifQ.cGcwc73FcLL2s8NYSi2UHFyDs4QWBQR7tuRYHgIZjf8EdmNbzU2-9fkSD499Pje0qmPHfslRbQIAUs_3apSbtgOh0KvUGpw1l60XfIWWeMtEr-Xari5W41h1r3Pg8KxTc6OaWxRoI3Z4OzLWTANURx9w2YsSrCsW4qK1uAUUlAeSSNZXNQdNhV3agrwOH-lJpEloTNCLN3MQ82pikEvASIrq9qQhwFr9wVoQtNSdcOI_VR0dt25waa0-8gXVescsRksegX6Pqqf8qwqxHKBrrUxwttauYsdSOoCcTaMkrO4waSYaDpLCz699U4y-iSCEfWPde6R9FHfbQi9VH5ydcA

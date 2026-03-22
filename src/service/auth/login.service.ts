@@ -13,6 +13,7 @@ interface LoginRequest {
 
 interface LoginResponse {
   token: string
+  userid: string
 }
 
 export class LoginService {
@@ -47,7 +48,7 @@ export class LoginService {
         expiresInSeconds: 3600,
       })
 
-      return { token }
+      return { token, userid: userId }
     } catch (error) {
       throw new Error(
         'Login failed: ' +

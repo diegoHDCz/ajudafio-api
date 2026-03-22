@@ -1,13 +1,12 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
 import { verifyToken } from '@clerk/backend'
-import { GetUserService } from '../../../service/user/get-user.service'
-import { UserRepositoryImpl } from '../../repositories/user.repository.impl'
 import { Role } from '../../../domain/entities/role'
 
 export interface AuthenticatedUser {
   id: string
   role: Role
   email?: string
+  fullName?: string
 }
 
 declare module 'fastify' {
@@ -32,28 +31,35 @@ export function requireAuth(allowedRoles?: Role[]) {
         issuer: process.env.CLERK_ISSUER!,
       })
 
-      const userRepo = new UserRepositoryImpl()
-      const role: Role = await userRepo
-        .findByEmail(payload.email as string)
-        ?.then((user) => {
-          if (!user) {
-            throw new Error('User not found')
-          }
-          return user.role
-        })
+      if (!payload.email) {
+        return reply.code(400).send({ error: 'Token missing email' })
+      }
 
-      request.user = {
-        id: payload.sub,
-        role: ,
-        email: payload.email as string | undefined,
+      // Extrair o papel diretamente do token JWT
+      const metadata = payload.metadata as { role?: string }
+      if (!metadata?.role) {
+        return reply.code(400).send({ error: 'Token missing role in metadata' })
+      }
+
+      let role: Role
+      try {
+        role = Role.create(metadata.role)
+      } catch (error) {
+        return reply.code(400).send({ error: 'Invalid role in token' })
       }
 
       if (allowedRoles && !allowedRoles.includes(role)) {
-        return reply
-          .code(403)
-          .send({ error: 'Forbidden: Insufficient permissions' })
+        return reply.code(403).send({ error: 'Forbidden' })
       }
-    } catch (error) {
+
+      request.user = {
+        id: payload.sub,
+        role,
+        email: payload.email as string,
+        fullName: payload.full_name as string,
+      }
+    } catch (err) {
+      console.error('Authentication error:', err)
       return reply.code(401).send({ error: 'Invalid token' })
     }
   }
