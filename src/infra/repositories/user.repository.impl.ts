@@ -3,7 +3,7 @@ import {
   UserDTO,
 } from '../../domain/repositories/user.repository'
 import { User } from '../../domain/entities/user'
-import { Professional } from '../../domain/entities/professional'
+import { Professional } from '../../domain/entities/professional/professional'
 import { db } from '../db/drizzle'
 import { users } from '../db/schema'
 import { eq } from 'drizzle-orm'
@@ -64,5 +64,15 @@ export class UserRepositoryImpl implements UserRepository {
           yearsOfExperience: row.yearsOfExperience || undefined,
         }),
     }
+  }
+
+  async updateUserById(userId: string, updates: Partial<User>): Promise<void> {
+    const updateData: any = {}
+    if (updates.email) updateData.email = updates.email
+    if (updates.username) updateData.username = updates.username
+    if (updates.authId) updateData.auth_id = updates.authId
+    if (updates.role) updateData.role = updates.role
+
+    await db.update(users).set(updateData).where(eq(users.id, userId))
   }
 }

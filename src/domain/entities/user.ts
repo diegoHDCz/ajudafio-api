@@ -44,7 +44,7 @@ export class User {
         )
       }
       // Importação dinâmica para evitar dependência circular
-      const { Professional } = await import('./professional')
+      const { Professional } = await import('./professional/professional')
       return Professional.createProfessional(
         email,
         professionalData.licenseNumber,
@@ -66,7 +66,7 @@ export class User {
   // Método para obter o professional se for um
   async asProfessional(): Promise<any> {
     if (this.isProfessional()) {
-      const { Professional } = await import('./professional')
+      const { Professional } = await import('./professional/professional')
       return this as unknown as InstanceType<typeof Professional>
     }
     return null
