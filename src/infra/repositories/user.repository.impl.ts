@@ -15,7 +15,7 @@ export class UserRepositoryImpl implements UserRepository {
       id: user.id,
       email: user.email,
       auth_id: user.authId,
-      createdAt: user.createdAt,
+      created_at: user.createdAt,
       username: user.username,
       role: user.role,
     }
@@ -23,9 +23,9 @@ export class UserRepositoryImpl implements UserRepository {
     // Adicionar campos específicos do Professional se for um Professional
     if (user.role === 'health_professional') {
       const professional = user as Professional
-      values.licenseNumber = professional.licenseNumber
+      values.license_number = professional.licenseNumber
       values.specialty = professional.specialty
-      values.yearsOfExperience = professional.yearsOfExperience
+      values.years_of_experience = professional.yearsOfExperience
     }
 
     await db.insert(users).values(values)
@@ -41,7 +41,7 @@ export class UserRepositoryImpl implements UserRepository {
     return {
       id: row.id,
       email: row.email,
-      createdAt: row.createdAt,
+      createdAt: row.created_at,
     }
   }
 
@@ -54,14 +54,14 @@ export class UserRepositoryImpl implements UserRepository {
     return {
       id: row.id,
       email: row.email,
-      createdAt: row.createdAt,
+      createdAt: row.created_at,
       authId: row.auth_id,
       role: Role.create(row.role),
       ...(row.role === 'health_professional' &&
-        row.licenseNumber && {
-          licenseNumber: row.licenseNumber,
+        row.license_number && {
+          licenseNumber: row.license_number,
           specialty: row.specialty || undefined,
-          yearsOfExperience: row.yearsOfExperience || undefined,
+          yearsOfExperience: row.years_of_experience || undefined,
         }),
     }
   }
