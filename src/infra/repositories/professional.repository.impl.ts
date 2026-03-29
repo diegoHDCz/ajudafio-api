@@ -11,7 +11,6 @@ import {
   professional_availabilities,
 } from '../db/schema'
 import { eq } from 'drizzle-orm'
-import { Role } from '../../domain/entities/role'
 
 export class ProfessionalRepositoryImpl implements ProfessionalRepository {
   // Professional methods
