@@ -3,7 +3,7 @@ import { buildServer } from './infra/http/server'
 import { clerkPlugin } from '@clerk/fastify'
 
 async function bootstrap() {
-  const app = buildServer()
+  const app = await buildServer()
   app.register(clerkPlugin, {
     publishableKey: env.CLERK_PUBLISHABLE_KEY!,
     secretKey: env.CLERK_SECRET_KEY!,

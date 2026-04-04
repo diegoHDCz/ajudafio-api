@@ -20,15 +20,15 @@ export async function authRoutes(app: FastifyInstance, deps: AuthRoutesDeps) {
         .string()
         .min(8, 'Password must be at least 8 characters long')
         .nonempty('Password is required'),
-      username: z
+      full_name: z
         .string()
-        .max(100, 'Username must be at most 100 characters long')
-        .nonempty('Username is required'),
+        .max(100, 'full_name must be at most 100 characters long')
+        .nonempty('full_name is required'),
     })
-    const { email, password, username } = schema.parse(request.body)
-
+    const { email, password, full_name } = schema.parse(request.body)
+  
     try {
-      const user = await authService.createUser(email, password, username)
+      const user = await authService.createUser(email, password, full_name)
       return reply.code(201).send({
         userId: user.id,
       })

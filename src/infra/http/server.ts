@@ -1,5 +1,5 @@
 import Fastify from 'fastify'
-
+import cors from '@fastify/cors'
 import { userRoutes } from './routes/user.routes'
 import { authRoutes } from './routes/auth.routes'
 import { UserRepositoryImpl } from '../repositories/user.repository.impl'
@@ -15,22 +15,28 @@ import {
   GenerateTemplateTokenService,
 } from '../../service/auth/session'
 
-export function buildServer() {
-  const app = Fastify({
-    logger: {
-      level: 'info',
-      transport: {
-        target: 'pino-pretty',
-        options: {
-          translateTime: 'HH:MM:ss Z',
-          ignore: 'pid,hostname',
-        },
-      },
-    },
+export async function buildServer() {
+  const app = Fastify()//{
+  //   logger: {
+  //     level: 'info',
+  //     transport: {
+  //       target: 'pino-pretty',
+  //       options: {
+  //         translateTime: 'HH:MM:ss Z',
+  //         ignore: 'pid,hostname',
+  //       },
+  //     },
+  //   },
+  // })
+
+  await app.register(cors, {
+    origin: true, // Em desenvolvimento, 'true' permite qualquer origem.
+    // Em produção, use: origin: 'http://meusite.com'
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 
   const userRepository = new UserRepositoryImpl()
-  const createUserService = new CreateUserService({ userRepository })
   const getUserService = new GetUserService({ userRepository })
   const authService = new AuthService({ userRepository })
   const loginService = new LoginService({ getUserService })
@@ -41,7 +47,6 @@ export function buildServer() {
   )
 
   userRoutes(app, {
-    createUserService,
     getUserService,
   })
 

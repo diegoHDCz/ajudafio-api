@@ -3,7 +3,6 @@ import {
   UserDTO,
 } from '../../domain/repositories/user.repository'
 import { User } from '../../domain/entities/user'
-import { Professional } from '../../domain/entities/professional/professional'
 import { db } from '../db/drizzle'
 import { users } from '../db/schema'
 import { eq } from 'drizzle-orm'
@@ -14,21 +13,15 @@ export class UserRepositoryImpl implements UserRepository {
     const values: any = {
       id: user.id,
       email: user.email,
-      auth_id: user.authId,
+      fullName: user.fullName,
+      authId: user.authId,
       created_at: user.createdAt,
       username: user.username,
       role: user.role,
     }
 
-    // Adicionar campos específicos do Professional se for um Professional
-    if (user.role === 'health_professional') {
-      const professional = user as Professional
-      values.license_number = professional.licenseNumber
-      values.specialty = professional.specialty
-      values.years_of_experience = professional.yearsOfExperience
-    }
+      await db.insert(users).values(values)
 
-    await db.insert(users).values(values)
   }
 
   async findById(id: string): Promise<UserDTO | null> {
@@ -41,7 +34,7 @@ export class UserRepositoryImpl implements UserRepository {
     return {
       id: row.id,
       email: row.email,
-      createdAt: row.created_at,
+      createdAt: row.createdAt,
     }
   }
 
@@ -54,15 +47,9 @@ export class UserRepositoryImpl implements UserRepository {
     return {
       id: row.id,
       email: row.email,
-      createdAt: row.created_at,
-      authId: row.auth_id,
+      createdAt: row.createdAt,
+      authId: row.authId,
       role: Role.create(row.role),
-      ...(row.role === 'health_professional' &&
-        row.license_number && {
-          licenseNumber: row.license_number,
-          specialty: row.specialty || undefined,
-          yearsOfExperience: row.years_of_experience || undefined,
-        }),
     }
   }
 

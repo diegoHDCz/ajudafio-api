@@ -9,6 +9,7 @@ import {
   jsonb,
 } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
+import { id } from 'zod/locales'
 
 // 1. USUÁRIOS (A base de tudo)
 export const users = pgTable('users', {
@@ -16,6 +17,9 @@ export const users = pgTable('users', {
   email: text('email').notNull().unique(),
   authId: text('auth_id').unique(), // Link com o Clerk
   username: text('username'),
+  fullName: text('full_name'),
+  identificationNumber: text('identification_number').unique(), // CPF ou CNPJ
+  identificationType: varchar('identification_type', { length: 20 }), // 'cpf' | 'cnpj'
   role: varchar('role', { length: 20 }).notNull().default('client'), // 'client' | 'professional' | 'admin'
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })

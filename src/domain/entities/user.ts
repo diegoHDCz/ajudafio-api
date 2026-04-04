@@ -1,74 +1,85 @@
-import { randomUUID } from 'crypto'
+import { randomUUID } from 'node:crypto'
 import { Role } from './role'
+import { DocumentationTypeEnum } from './documentation-type.enum'
+
+export interface UserProps {
+  id: string
+  email: string
+  authId: string | null
+  createdAt: Date | null
+  role: Role
+  username: string | null
+  fullName: string | null
+  identificationNumber?: string | null
+  identificationType?: DocumentationTypeEnum | null
+}
 
 export class User {
-  constructor(
-    public id: string,
-    public email: string,
-    public authId: string | null,
-    public createdAt: Date | null,
-    public role: Role = Role.CLIENT,
-    public username: string | null = null,
-  ) {}
+  public id: string
+  public email: string
+  public authId: string | null
+  public createdAt: Date | null
+  public role: Role
+  public username: string | null
+  public fullName: string | null
+  public identificationNumber: string | null
+  public identificationType: DocumentationTypeEnum | null
+
+  constructor(props: UserProps) {
+    this.id = props.id
+    this.email = props.email
+    this.authId = props.authId
+    this.createdAt = props.createdAt
+    this.role = props.role ?? Role.CLIENT
+    this.username = props.username ?? null
+    this.fullName = props.fullName ?? null
+    this.identificationNumber = props.identificationNumber ?? null
+    this.identificationType = props.identificationType ?? null
+  }
 
   static create(
     email: string,
     auth_id: string | null = null,
+    fullName: string | null = null,
     username: string | null = null,
   ) {
-    return new User(
-      randomUUID(),
-      email,
-      auth_id,
-      new Date(),
-      Role.CLIENT,
-      username,
-    )
+    // Agora não importa a ordem, pois você usa chaves (keys)
+    return new User({
+      id: randomUUID(),
+      email: email,
+      authId: auth_id,
+      createdAt: new Date(),
+      role: Role.CLIENT,
+      username: username,
+      fullName: fullName,
+    })
   }
 
-  static async createWithRole(
-    email: string,
-    role: Role,
-    auth_id: string | null = null,
-    username: string | null = null,
-    professionalData?: {
-      licenseNumber: string
-      specialty: string
-      yearsOfExperience: number
-    },
-  ): Promise<User> {
-    if (role === Role.HEALTH_PROFESSIONAL) {
-      if (!professionalData) {
-        throw new Error(
-          'Professional data is required for HEALTH_PROFESSIONAL role',
-        )
-      }
-      // Importação dinâmica para evitar dependência circular
-      const { Professional } = await import('./professional/professional')
-      return Professional.createProfessional(
-        email,
-        professionalData.licenseNumber,
-        professionalData.specialty,
-        professionalData.yearsOfExperience,
-        auth_id,
-        username,
-      )
+  static getEmailPrefixWithFullTimestamp(email: string): string {
+    const [localPart] = email.split('@')
+
+    if (!localPart) {
+      throw new Error('E-mail fornecido é inválido ou está vazio')
     }
 
-    return new User(randomUUID(), email, auth_id, new Date(), role, username)
+    const timestamp = new Date().toISOString()
+
+    const numbersOnlyTimestamp = timestamp.replace(/\D/g, '')
+
+    return `${localPart}${numbersOnlyTimestamp}`
   }
 
-  // Type guard para verificar se é um Professional
-  isProfessional(): boolean {
-    return this.role === Role.HEALTH_PROFESSIONAL
-  }
+  static getFirstAndLastName(fullName: string): {
+    firstName: string
 
-  // Método para obter o professional se for um
-  async asProfessional(): Promise<any> {
-    if (this.isProfessional()) {
-      const { Professional } = await import('./professional/professional')
-      return this as unknown as InstanceType<typeof Professional>
-    }
-    return null
+    lastName: string
+  } {
+    const nameParts = fullName.trim().split(' ')
+
+    const firstName = nameParts[0]
+
+    const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : ''
+
+    return { firstName, lastName }
   }
 }

@@ -25,24 +25,27 @@ export class AuthService {
   async createUser(
     email: string,
     password: string,
-    username: string,
+    full_name: string,
   ): Promise<UserDTO> {
-    // Create user in Clerk
-    const clerkUser = await this.clerk.users.createUser({
+    const username = User.getEmailPrefixWithFullTimestamp(email)
+    const { firstName, lastName } = User.getFirstAndLastName(full_name)
+    const { id } = await this.clerk.users.createUser({
       emailAddress: [email],
       username: username,
+      firstName: firstName,
+      lastName: lastName,
       password,
       publicMetadata: {
         role: Role.CLIENT,
       },
     })
 
-    const user = User.create(email, clerkUser.id, username)
+    const user = User.create(email, id, full_name, username)
     await this.deps.userRepository.create(user)
 
     const createdUser = await this.deps.userRepository.findByEmail(email)
     if (!createdUser) {
-      this.clerk.users.deleteUser(clerkUser.id)
+      this.clerk.users.deleteUser(id)
       throw new Error('Failed to create user')
     }
     return createdUser
