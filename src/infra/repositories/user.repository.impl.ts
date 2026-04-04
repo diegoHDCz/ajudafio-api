@@ -1,65 +1,63 @@
-import {
-  UserRepository,
-  UserDTO,
-} from '../../domain/repositories/user.repository'
-import { User } from '../../domain/entities/user'
-import { db } from '../db/drizzle'
+import { UserEntity } from '../../domain/entities/user'
+import { InferSelectModel } from 'drizzle-orm'
 import { users } from '../db/schema'
+import { db } from '../db/drizzle'
 import { eq } from 'drizzle-orm'
+import { UserRepository } from '../../domain/repositories/user.repository'
 import { Role } from '../../domain/entities/role'
 
-export class UserRepositoryImpl implements UserRepository {
-  async create(user: User): Promise<void> {
-    const values: any = {
+export type User = InferSelectModel<typeof users>
+export class DrizzleUserRepository implements UserRepository {
+  async save(user: UserEntity): Promise<void> {
+    await db.insert(users).values({
       id: user.id,
       email: user.email,
-      fullName: user.fullName,
-      authId: user.authId,
-      created_at: user.createdAt,
-      username: user.username,
+      name: user.name,
+      image: user.image,
+      emailVerified: user.emailVerified,
+      identificationNumber: user.identificationNumber,
+      identificationType: user.identificationType,
       role: user.role,
-    }
-
-      await db.insert(users).values(values)
-
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    })
   }
 
-  async findById(id: string): Promise<UserDTO | null> {
-    const result = await db.select().from(users).where(eq(users.id, id))
-
-    if (!result.length) return null
-
-    const row = result[0]
-
-    return {
-      id: row.id,
-      email: row.email,
-      createdAt: row.createdAt,
-    }
+  async delete(id: string): Promise<void> {
+    await db.delete(users).where(eq(users.id, id))
   }
 
-  async findByEmail(email: string): Promise<UserDTO | null> {
-    const result = await db.select().from(users).where(eq(users.email, email))
-    if (!result.length) return null
+  async findById(id: string): Promise<UserEntity | null> {
+    const [row] = await db.select().from(users).where(eq(users.id, id))
+    return row ? this.mapToEntity(row) : null
+  }
 
-    const row = result[0]
+  async findByEmail(email: string): Promise<UserEntity | null> {
+    const [row] = await db.select().from(users).where(eq(users.email, email))
+    return row ? this.mapToEntity(row) : null
+  }
 
+  async listByRole(role: Role): Promise<UserEntity[]> {
+    const rows = await db.select().from(users).where(eq(users.role, role))
+    return rows.map(this.mapToEntity)
+  }
+
+  async update(id: string, data: Partial<UserEntity>): Promise<UserEntity> {
+    const [updated] = await db
+      .update(users)
+      .set({
+        ...data,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, id))
+      .returning()
+    return this.mapToEntity(updated)
+  }
+
+  private mapToEntity(row: any): UserEntity {
     return {
-      id: row.id,
-      email: row.email,
-      createdAt: row.createdAt,
-      authId: row.authId,
+      ...row,
       role: Role.create(row.role),
     }
-  }
-
-  async updateUserById(userId: string, updates: Partial<User>): Promise<void> {
-    const updateData: any = {}
-    if (updates.email) updateData.email = updates.email
-    if (updates.username) updateData.username = updates.username
-    if (updates.authId) updateData.auth_id = updates.authId
-    if (updates.role) updateData.role = updates.role
-
-    await db.update(users).set(updateData).where(eq(users.id, userId))
   }
 }

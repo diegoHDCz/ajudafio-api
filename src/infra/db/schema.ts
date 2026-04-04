@@ -23,7 +23,7 @@ export const users = pgTable('users', {
 
   identificationNumber: text('identification_number').unique(),
   identificationType: varchar('identification_type', { length: 20 }),
-  role: varchar('role', { length: 20 }).notNull().default('client'),
+  role: varchar('role', { length: 20 }).notNull().default('CLIENT'),
 
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),

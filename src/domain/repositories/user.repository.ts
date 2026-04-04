@@ -1,17 +1,12 @@
+// src/domain/repositories/user-repository.ts
+import { UserEntity } from '../entities/user'
 import { Role } from '../entities/role'
-import { User } from '../entities/user'
-
-export interface UserDTO {
-  id: string
-  email: string
-  createdAt: Date | null
-  authId?: string | null
-  role?: Role | null
-}
 
 export interface UserRepository {
-  create(user: User): Promise<void>
-  findById(id: string): Promise<UserDTO | null>
-  findByEmail(email: string): Promise<UserDTO | null>
-  updateUserById(userId: string, updates: Partial<User>): Promise<void>
+  findById(id: string): Promise<UserEntity | null>
+  findByEmail(email: string): Promise<UserEntity | null>
+  listByRole(role: Role): Promise<UserEntity[]>
+  save(user: UserEntity): Promise<void>
+  update(id: string, data: Partial<UserEntity>): Promise<UserEntity>
+  delete(id: string): Promise<void>
 }
