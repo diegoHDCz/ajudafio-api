@@ -1,5 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
-import { verifyToken } from '@clerk/backend'
+import { auth } from '../../lib/auth' // Import your Better Auth instance
+import { fromNodeHeaders } from 'better-auth/node'
 import { Role } from '../../../domain/entities/role'
 
 export interface AuthenticatedUser {
@@ -18,49 +19,49 @@ declare module 'fastify' {
 export function requireAuth(allowedRoles?: Role[]) {
   return async (request: FastifyRequest, reply: FastifyReply) => {
     try {
-      const authHeader = request.headers.authorization
-
-      if (!authHeader?.startsWith('Bearer ')) {
-        return reply.code(401).send({ error: 'Missing token' })
-      }
-
-      const token = authHeader.replace('Bearer ', '')
-
-      const payload = await verifyToken(token, {
-        secretKey: process.env.CLERK_SECRET_KEY!,
-        issuer: process.env.CLERK_ISSUER!,
+      // 1. Retrieve the session using Better Auth's API
+      // It automatically handles Session Cookies or Bearer Tokens
+      const session = await auth.api.getSession({
+        headers: fromNodeHeaders(request.headers),
       })
 
-      if (!payload.email) {
-        return reply.code(400).send({ error: 'Token missing email' })
+      // 2. If no session, return 401
+      if (!session) {
+        return reply
+          .code(401)
+          .send({ error: 'Unauthorized: No active session' })
       }
 
-      // Extrair o papel diretamente do token JWT
-      const metadata = payload.metadata as { role?: string }
-      if (!metadata?.role) {
-        return reply.code(400).send({ error: 'Token missing role in metadata' })
-      }
+      const { user } = session
 
+      // 3. Extract and validate the role from the session user
+      // Better Auth stores the 'role' field we added to 'additionalFields'
       let role: Role
       try {
-        role = Role.create(metadata.role)
+        role = Role.create(user.role as string)
       } catch (error) {
-        return reply.code(400).send({ error: 'Invalid role in token' })
+        return reply.code(400).send({ error: 'Invalid role assigned to user' })
       }
 
+      // 4. RBAC Check (Role-Based Access Control)
       if (allowedRoles && !allowedRoles.includes(role)) {
-        return reply.code(403).send({ error: 'Forbidden' })
+        return reply
+          .code(403)
+          .send({ error: 'Forbidden: Insufficient permissions' })
       }
 
+      // 5. Populate request.user with our domain-specific types
       request.user = {
-        id: payload.sub,
+        id: user.id,
         role,
-        email: payload.email as string,
-        fullName: payload.full_name as string,
+        email: user.email,
+        fullName: user.name || undefined, // Better Auth uses 'name' by default
       }
     } catch (err) {
       console.error('Authentication error:', err)
-      return reply.code(401).send({ error: 'Invalid token' })
+      return reply
+        .code(500)
+        .send({ error: 'Internal server error during authentication' })
     }
   }
 }
