@@ -5,29 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1773516996754,
-      "tag": "0000_boring_dreadnoughts",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1773520358110,
-      "tag": "0001_last_star_brand",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1774202117838,
-      "tag": "0002_omniscient_nightmare",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1774228389521,
-      "tag": "0003_silent_redwing",
+      "when": 1775273267971,
+      "tag": "0000_faithful_venom",
       "breakpoints": true
     }
   ]
