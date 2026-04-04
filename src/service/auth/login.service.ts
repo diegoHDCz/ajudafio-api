@@ -1,59 +1,67 @@
-import { Clerk } from '@clerk/clerk-sdk-node'
-import { env } from '../../config/env'
-import { GetUserService } from '../user/get-user.service'
-
-interface LoginServiceDeps {
-  getUserService: GetUserService
-}
+import { verifyPassword } from 'better-auth/crypto'
+import { UserRepository } from '../../domain/repositories/user.repository'
+import { AccountRepository } from '../../domain/repositories/account.repository'
+import { UserEntity } from '../../domain/entities/user'
+import { randomUUID } from 'node:crypto'
+import { SessionEntity } from '../../domain/entities/session'
+import { SessionRepository } from '../../domain/repositories/session.repository'
 
 interface LoginRequest {
   email: string
   password: string
 }
 
-interface LoginResponse {
-  token: string
-  userid: string
-}
-
 export class LoginService {
-  private deps: LoginServiceDeps
-  private clerk: ReturnType<typeof Clerk>
-  constructor(deps: LoginServiceDeps) {
-    this.deps = deps
-    this.clerk = Clerk({
-      secretKey: env.CLERK_SECRET_KEY!,
-    })
-  }
+  constructor(
+    private userRepository: UserRepository,
+    private accountRepository: AccountRepository,
+    private sessionRepository: SessionRepository,
+  ) {}
 
-  async login(request: LoginRequest): Promise<LoginResponse> {
-    const { email, password } = request
-
-    try {
-      const user = await this.deps.getUserService.executeByEmail(email)
-      if (!user || !user.authId) {
-        throw new Error('User not found or missing auth ID')
-      }
-      const userId = user.authId as string
-
-      const verified = await this.clerk.users.verifyPassword({
-        userId,
-        password,
-      })
-      if (!verified) {
-        throw new Error('Invalid credentials')
-      }
-      const { token } = await this.clerk.signInTokens.createSignInToken({
-        userId,
-        expiresInSeconds: 3600,
-      })
-
-      return { token, userid: userId }
-    } catch (error) {
-      throw new Error(
-        'Login failed: ' +
-          (error instanceof Error ? error.message : String(error)),
-      )
+  async execute({
+    email,
+    password,
+  }: LoginRequest): Promise<{ user: UserEntity; session: SessionEntity }> {
+    const user = await this.userRepository.findByEmail(email.toLowerCase())
+    if (!user) {
+      throw new Error('Invalid email or password')
     }
+
+    const accounts = await this.accountRepository.findByUserId(user.id)
+    const credentialAccount = accounts.find(
+      (acc) => acc.providerId === 'credential',
+    )
+
+    if (!credentialAccount || !credentialAccount.password) {
+      throw new Error('Invalid email or password')
+    }
+
+    const isPasswordValid = await verifyPassword({
+      password: password,
+      hash: credentialAccount.password,
+    })
+
+    if (!isPasswordValid) {
+      throw new Error('Invalid email or password')
+    }
+
+    // 4. Se a senha está OK, criamos a Sessão manualmente
+    const sessionToken = randomUUID() // Este é o seu "Bearer Token"
+    const now = new Date()
+    const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000) // 7 dias
+
+    const session: SessionEntity = {
+      id: randomUUID(),
+      userId: user.id,
+      token: sessionToken,
+      expiresAt: expiresAt,
+      createdAt: now,
+      updatedAt: now,
+      // ipAddress e userAgent você pode pegar do request na rota e passar para cá
+    }
+
+    await this.sessionRepository.save(session)
+
+    return { user, session }
   }
 }

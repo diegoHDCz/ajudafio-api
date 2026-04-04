@@ -1,58 +1,80 @@
 import { FastifyInstance } from 'fastify'
-import { AuthService } from '../../../service/auth/register.service'
-import { email, z } from 'zod'
+import { z } from 'zod'
+import { DrizzleUserRepository } from '../../repositories/user.repository.impl'
+import { DrizzleAccountRepository } from '../../repositories/account.repository.impl'
+import { RegisterService } from '../../../service/auth/register.service'
+import { DrizzleSessionRepository } from '../../repositories/session.repository.impl'
 import { LoginService } from '../../../service/auth/login.service'
-import { log } from 'node:console'
 
-interface AuthRoutesDeps {
-  authService: AuthService
-  loginService: LoginService
-}
-
-export async function authRoutes(app: FastifyInstance, deps: AuthRoutesDeps) {
-  const { authService, loginService } = deps
+export async function authRoutes(app: FastifyInstance) {
+  const userRepository = new DrizzleUserRepository()
+  const accountRepository = new DrizzleAccountRepository()
+  const sessionRepository = new DrizzleSessionRepository()
+  const registerService = new RegisterService(userRepository, accountRepository)
+  const loginService = new LoginService(
+    userRepository,
+    accountRepository,
+    sessionRepository,
+  )
 
   // Sign up route - public
-  app.post('/auth/signup', async (request, reply) => {
-    const schema = z.object({
-      email: z.string().email().nonempty('Email is required'),
-      password: z
-        .string()
-        .min(8, 'Password must be at least 8 characters long')
-        .nonempty('Password is required'),
-      full_name: z
-        .string()
-        .max(100, 'full_name must be at most 100 characters long')
-        .nonempty('full_name is required'),
+  app.post('/signup', async (request, reply) => {
+    const registerSchema = z.object({
+      name: z.string().min(2),
+      email: z.string().email(),
+      password: z.string().min(6),
     })
-    const { email, password, full_name } = schema.parse(request.body)
-  
+
     try {
-      const user = await authService.createUser(email, password, full_name)
+      const data = registerSchema.parse(request.body)
+
+      const user = await registerService.execute(data)
+
       return reply.code(201).send({
-        userId: user.id,
+        message: 'Usuário criado com sucesso',
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+        },
       })
     } catch (error) {
-      return reply.code(400).send({ error: error })
+      if (error instanceof z.ZodError) {
+        return reply.code(400).send({
+          error: 'Dados inválidos',
+          details: error.message,
+        })
+      }
+
+      if (error instanceof Error && error.message === 'User already exists') {
+        return reply.code(409).send({ error: 'Este e-mail já está em uso' })
+      }
+
+      app.log.error(error)
+      return reply.code(500).send({ error: 'Erro interno no servidor' })
     }
   })
 
-  app.post('/auth/login', async (request, reply) => {
-    const schema = z.object({
-      email: z.string().email().nonempty('Email is required'),
-      password: z.string().nonempty('Password is required'),
-    })
-    const { email, password } = schema.parse(request.body)
+  app.post('/login', async (request, reply) => {
     try {
-      
-      const token = await loginService.login({ email, password })
-      console.log(`Login successful for email: ${email}`)
-      console.log(token)
-      return reply.code(200).send(token)
-    } catch (error) {
-      return reply
-        .code(400)
-        .send({ error: error instanceof Error ? error.message : String(error) })
+      const { email, password } = request.body as any
+      const { user, session } = await loginService.execute({ email, password })
+
+      reply.setCookie('session_token', session.token, {
+        path: '/',
+        httpOnly: true,
+        secure: true,
+        sameSite: 'lax',
+        expires: session.expiresAt,
+      })
+
+      return reply.send({
+        user: { id: user.id, email: user.email, name: user.name },
+        token: session.token,
+        expiresAt: session.expiresAt,
+      })
+    } catch (err) {
+      return reply.code(401).send({ error: 'Unauthorized' })
     }
   })
 }

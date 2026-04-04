@@ -1,61 +1,58 @@
-import { Clerk } from '@clerk/clerk-sdk-node'
-import {
-  UserRepository,
-  UserDTO,
-} from '../../domain/repositories/user.repository'
-import { User } from '../../domain/entities/user'
-import { env } from '../../config/env'
+import { randomUUID } from 'node:crypto'
+import { AccountRepository } from '../../domain/repositories/account.repository'
+import { UserRepository } from '../../domain/repositories/user.repository'
+import { hashPassword } from 'better-auth/crypto'
 import { Role } from '../../domain/entities/role'
+import { UserEntity } from '../../domain/entities/user'
 
-interface AuthServiceDeps {
-  userRepository: UserRepository
+interface RegisterRequest {
+  name: string
+  email: string
+  password: string
 }
+export class RegisterService {
+  constructor(
+    private userRepository: UserRepository,
+    private accountRepository: AccountRepository,
+  ) {}
 
-export class AuthService {
-  private deps: AuthServiceDeps
-  private clerk: ReturnType<typeof Clerk>
-
-  constructor(deps: AuthServiceDeps) {
-    this.deps = deps
-    this.clerk = Clerk({
-      secretKey: env.CLERK_SECRET_KEY!,
-    })
-  }
-
-  async createUser(
-    email: string,
-    password: string,
-    full_name: string,
-  ): Promise<UserDTO> {
-    const username = User.getEmailPrefixWithFullTimestamp(email)
-    const { firstName, lastName } = User.getFirstAndLastName(full_name)
-    const { id } = await this.clerk.users.createUser({
-      emailAddress: [email],
-      username: username,
-      firstName: firstName,
-      lastName: lastName,
-      password,
-      publicMetadata: {
-        role: Role.CLIENT,
-      },
-    })
-
-    const user = User.create(email, id, full_name, username)
-    await this.deps.userRepository.create(user)
-
-    const createdUser = await this.deps.userRepository.findByEmail(email)
-    if (!createdUser) {
-      this.clerk.users.deleteUser(id)
-      throw new Error('Failed to create user')
+  async execute({
+    name,
+    email,
+    password,
+  }: RegisterRequest): Promise<UserEntity> {
+    const existingUser = await this.userRepository.findByEmail(email)
+    if (existingUser) {
+      throw new Error('Email já está em uso')
     }
-    return createdUser
-  }
+    const userId = randomUUID()
+    const now = new Date()
 
-  async getUserById(userId: string): Promise<UserDTO | null> {
-    return await this.deps.userRepository.findById(userId)
-  }
+    const user: UserEntity = {
+      id: userId,
+      email: email.toLowerCase(),
+      name: name,
+      emailVerified: false,
+      role: Role.CLIENT,
+      createdAt: now,
+      updatedAt: now,
+    }
 
-  async getUserByEmail(email: string): Promise<UserDTO | null> {
-    return await this.deps.userRepository.findByEmail(email)
+    const hashedPassword = await hashPassword(password)
+
+    const account = {
+      id: randomUUID(),
+      userId: userId,
+      accountId: email.toLowerCase(),
+      providerId: 'credential',
+      password: hashedPassword,
+      createdAt: now,
+      updatedAt: now,
+    }
+
+    await this.userRepository.save(user)
+    await this.accountRepository.save(account as any)
+
+    return user
   }
 }

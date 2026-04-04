@@ -14,7 +14,8 @@ export const auth = betterAuth({
     },
   }),
 
-  // Configure Authentication Methods
+  secret: process.env.BETTER_AUTH_SECRET,
+
   emailAndPassword: {
     enabled: true,
     autoSignIn: true,
@@ -25,10 +26,10 @@ export const auth = betterAuth({
     additionalFields: {
       role: {
         type: 'string',
-        defaultValue: 'client', // Matches your DB default
+        defaultValue: 'CLIENT', // Matches your DB default
         required: true,
       },
-      username: { type: 'string' },
+      name: { type: 'string' },
       identificationNumber: { type: 'string' },
       identificationType: { type: 'string' },
     },
@@ -39,5 +40,4 @@ export const auth = betterAuth({
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24, // Update session every 24 hours
   },
-
 })

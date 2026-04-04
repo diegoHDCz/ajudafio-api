@@ -13,7 +13,7 @@ import { relations } from 'drizzle-orm'
 // --- 1. BETTER AUTH REQUIRED TABLES ---
 
 export const users = pgTable('users', {
-  id: uuid('id').defaultRandom().primaryKey().defaultRandom(),
+  id: uuid('id').defaultRandom().primaryKey(),
   email: text('email').notNull().unique(),
   name: text('name'), // Better Auth standard
   emailVerified: boolean('email_verified').notNull().default(false),
@@ -30,7 +30,7 @@ export const users = pgTable('users', {
 })
 
 export const sessions = pgTable('sessions', {
-  id: uuid('id').defaultRandom().primaryKey().defaultRandom(),
+  id: uuid('id').defaultRandom().primaryKey(),
   expiresAt: timestamp('expires_at').notNull(),
   token: text('token').notNull().unique(),
   createdAt: timestamp('created_at').notNull(),
@@ -43,7 +43,7 @@ export const sessions = pgTable('sessions', {
 })
 
 export const accounts = pgTable('accounts', {
-  id: uuid('id').defaultRandom().primaryKey().defaultRandom(),
+  id: uuid('id').defaultRandom().primaryKey(),
   accountId: text('account_id').notNull(),
   providerId: text('provider_id').notNull(),
   userId: uuid('user_id')
@@ -61,7 +61,7 @@ export const accounts = pgTable('accounts', {
 })
 
 export const verifications = pgTable('verifications', {
-  id: uuid('id').defaultRandom().primaryKey().defaultRandom(),
+  id: uuid('id').defaultRandom().primaryKey(),
   identifier: text('identifier').notNull(),
   value: text('value').notNull(),
   expiresAt: timestamp('expires_at').notNull(),
@@ -72,7 +72,7 @@ export const verifications = pgTable('verifications', {
 // --- 2. YOUR DOMAIN TABLES (PROFESSIONALS & CONTRACTS) ---
 
 export const professionals = pgTable('professionals', {
-  id: uuid('id').defaultRandom().primaryKey().defaultRandom(),
+  id: uuid('id').defaultRandom().primaryKey(),
   userId: uuid('user_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' })
@@ -87,7 +87,7 @@ export const professionals = pgTable('professionals', {
 })
 
 export const availabilities = pgTable('availabilities', {
-  id: uuid('id').defaultRandom().primaryKey().defaultRandom(),
+  id: uuid('id').defaultRandom().primaryKey(),
   professionalId: uuid('professional_id')
     .notNull()
     .references(() => professionals.id, { onDelete: 'cascade' }),
@@ -97,7 +97,7 @@ export const availabilities = pgTable('availabilities', {
 })
 
 export const contracts = pgTable('contracts', {
-  id: uuid('id').defaultRandom().primaryKey().defaultRandom(),
+  id: uuid('id').defaultRandom().primaryKey(),
   clientId: uuid('client_id')
     .notNull()
     .references(() => users.id),
@@ -105,7 +105,7 @@ export const contracts = pgTable('contracts', {
     .notNull()
     .references(() => professionals.id),
 
-  status: varchar('status', { length: 20 }).notNull().default('pending'),
+  status: varchar('status', { length: 20 }).notNull().default('PENDING'),
   hourRate: integer('hour_rate').notNull(),
   totalAmount: integer('total_amount').notNull(),
 
