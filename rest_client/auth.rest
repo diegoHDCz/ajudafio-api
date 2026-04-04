@@ -1,21 +1,48 @@
-###
+### Configurações de Variáveis
+@baseUrl = http://localhost:3000/api/auth
+@contentType = application/json
 
-POST http://localhost:3000/auth/signup
-Content-Type: application/json
+############################################################
+# 1. REGISTRO DE NOVO USUÁRIO
+############################################################
+# @name register
+POST {{baseUrl}}/signup
+Content-Type: {{contentType}}
 
 {
-  "username": "diego_czajka",
-  "email": "diego.czajka@gmail.com",
-  "password": "Validation!!123"
+  "name": "Paulo Robson",
+  "email": "paulo.robson@example.com",
+  "password": "senha_segura_123"
 }
 
 ###
 
-
-POST http://localhost:3000/auth/login
-Content-Type: application/json
+############################################################
+# 2. LOGIN (OBTER TOKEN/COOKIE)
+############################################################
+# @name login
+POST {{baseUrl}}/login
+Content-Type: {{contentType}}
 
 {
-  "email": "diego.czajka@gmail.com",
-  "password": "Validation!!123"
+  "email": "paulo.robson@example.com",
+  "password": "senha_segura_123"
 }
+
+###
+
+############################################################
+# 3. VERIFICAR SESSÃO (ME)
+# Requer o Cookie ou o Bearer Token retornado no Login
+############################################################
+# @name getMe
+GET {{baseUrl}}/me
+Content-Type: {{contentType}}
+# Authorization: Bearer {{login.response.body.token}}
+
+###
+
+############################################################
+# 4. HEALTH CHECK (OPCIONAL)
+############################################################
+GET http://localhost:3333/api/health

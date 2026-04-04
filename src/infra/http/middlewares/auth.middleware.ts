@@ -7,7 +7,7 @@ export interface AuthenticatedUser {
   id: string
   role: Role
   email?: string
-  fullName?: string
+  name?: string
 }
 
 declare module 'fastify' {
@@ -34,8 +34,7 @@ export function requireAuth(allowedRoles?: Role[]) {
 
       const { user } = session
 
-      // 3. Extract and validate the role from the session user
-      // Better Auth stores the 'role' field we added to 'additionalFields'
+
       let role: Role
       try {
         role = Role.create(user.role as string)
@@ -55,7 +54,7 @@ export function requireAuth(allowedRoles?: Role[]) {
         id: user.id,
         role,
         email: user.email,
-        fullName: user.name || undefined, // Better Auth uses 'name' by default
+        name: user.name || undefined, // Better Auth uses 'name' by default
       }
     } catch (err) {
       console.error('Authentication error:', err)

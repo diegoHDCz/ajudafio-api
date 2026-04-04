@@ -1,6 +1,7 @@
-import pino from 'pino'
+// src/utils/logger.ts
+import { PinoLoggerOptions } from 'fastify/types/logger'
 
-export const logger = pino({
+export const loggerConfig: PinoLoggerOptions = {
   level: process.env.LOG_LEVEL || 'info',
   transport: {
     target: 'pino-pretty',
@@ -9,4 +10,4 @@ export const logger = pino({
       ignore: 'pid,hostname',
     },
   },
-})
+}

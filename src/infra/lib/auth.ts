@@ -26,7 +26,7 @@ export const auth = betterAuth({
     additionalFields: {
       role: {
         type: 'string',
-        defaultValue: 'CLIENT', // Matches your DB default
+        defaultValue: 'CLIENT',
         required: true,
       },
       name: { type: 'string' },

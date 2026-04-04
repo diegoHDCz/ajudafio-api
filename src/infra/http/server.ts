@@ -3,11 +3,11 @@ import cors from '@fastify/cors'
 import fastifyCookie from '@fastify/cookie'
 import { authRoutes } from './routes/auth.routes'
 import { healthRoutes } from './routes/health.routes'
-import { logger } from '../utils/logger'
+import { loggerConfig } from '../utils/logger'
 
 export async function buildServer() {
   const app = Fastify({
-    logger: logger,
+    logger: loggerConfig,
   })
 
   // 1. CORS deve vir primeiro
