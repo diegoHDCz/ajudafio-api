@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "node --inspect=9229 --import tsx src/main.ts",
-    "start": "node dist/main.js",
+    "start": "node dist/src/main.js",
     "build": "tsc",
     "db:generate": "npx drizzle-kit generate",
     "db:push": "npx drizzle-kit push",
