@@ -10,9 +10,9 @@ POST {{baseUrl}}/signup
 Content-Type: {{contentType}}
 
 {
-  "name": "Paulo Robson",
-  "email": "paulo.robson@example.com",
-  "password": "senha_segura_123"
+  "name": "Diego Hernan",
+  "email": "diego.czajka@gmail.com",
+  "password": "blablabla_123"
 }
 
 ###
@@ -25,8 +25,8 @@ POST {{baseUrl}}/login
 Content-Type: {{contentType}}
 
 {
-  "email": "paulo.robson@example.com",
-  "password": "senha_segura_123"
+  "email": "diego.czajka@gmail.com",
+  "password": "blablabla_123"
 }
 
 ###

@@ -21,7 +21,7 @@ export class LoginService {
   async execute({
     email,
     password,
-  }: LoginRequest): Promise<{ user: UserEntity; session: SessionEntity }> {
+  }: LoginRequest): Promise<{ user: UserEntity; token: string }> {
     const user = await this.userRepository.findByEmail(email.toLowerCase())
     if (!user) {
       throw new Error('Invalid email or password')
@@ -62,6 +62,9 @@ export class LoginService {
 
     await this.sessionRepository.save(session)
 
-    return { user, session }
+    return {
+      user,
+      token: sessionToken,
+    }
   }
 }

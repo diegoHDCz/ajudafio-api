@@ -4,6 +4,7 @@ import fastifyCookie from '@fastify/cookie'
 import { authRoutes } from './routes/auth.routes'
 import { healthRoutes } from './routes/health.routes'
 import { loggerConfig } from '../utils/logger'
+import { userRoutes } from './routes/user.routes'
 
 export async function buildServer() {
   const app = Fastify({
@@ -30,6 +31,7 @@ export async function buildServer() {
   // Use o .register para o Fastify gerenciar o encapsulamento
   await app.register(authRoutes, { prefix: '/api/auth' })
   await app.register(healthRoutes, { prefix: '/api/health' })
+  await app.register(userRoutes, { prefix: '/api/users' })
 
   return app
 }

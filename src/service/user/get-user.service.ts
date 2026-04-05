@@ -1,21 +1,10 @@
-// import { UserRepository } from '../../domain/repositories/user.repository'
+import { UserEntity } from '../../domain/entities/user'
+import { UserRepository } from '../../domain/repositories/user.repository'
 
-// interface GetUserServiceDeps {
-//   userRepository: UserRepository
-// }
+export class GetUserService {
+  constructor(private userRepository: UserRepository) {}
 
-// export class GetUserService {
-//   private deps: GetUserServiceDeps
-
-//   constructor(deps: GetUserServiceDeps) {
-//     this.deps = deps
-//   }
-
-//   async execute(userId: string): Promise<UserDTO | null> {
-//     return await this.deps.userRepository.findById(userId)
-//   }
-
-//   async executeByEmail(email: string): Promise<UserDTO | null> {
-//     return await this.deps.userRepository.findByEmail(email)
-//   }
-// }
+  async executeByEmail(email: string): Promise<UserEntity | null> {
+    return await this.userRepository.findByEmail(email)
+  }
+}

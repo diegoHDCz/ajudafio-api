@@ -2,6 +2,7 @@ import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { db } from '../db/drizzle' // Path to your drizzle db instance
 import * as schema from '../db/schema' // Path to your schema file
+import { bearer } from 'better-auth/plugins'
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -14,7 +15,10 @@ export const auth = betterAuth({
     },
   }),
 
+  plugins: [bearer()],
+
   secret: process.env.BETTER_AUTH_SECRET,
+  baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3000',
 
   emailAndPassword: {
     enabled: true,
@@ -40,4 +44,18 @@ export const auth = betterAuth({
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24, // Update session every 24 hours
   },
+  advanced: {
+    // 1. DESABILITA A CHECAGEM DE CSRF (O que mata chamadas de fora do browser)
+    disableCSRFCheck: true,
+
+    // 2. DESABILITA A VALIDAÇÃO RIGOROSA DE ORIGEM (Libera VS Code/Postman)
+    disableOriginCheck: true,
+
+    // 3. SE PRECISAR USAR IP EM LOCALHOST (Evita erro de tracking)
+    ipAddress: {
+      disableIpTracking: true,
+    },
+    useCookieToStoredSession: false,
+  },
+  trustedOrigins: ['http://localhost:3000'],
 })

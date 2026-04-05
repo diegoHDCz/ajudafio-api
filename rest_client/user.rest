@@ -1,0 +1,45 @@
+### Configurações de Variáveis
+@baseUrl = http://localhost:3000/api
+@contentType = application/json
+
+############################################################
+# 1. LOGIN
+############################################################
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "diego.czajka@gmail.com",
+  "password": "blablabla_123"
+}
+
+###
+
+############################################################
+# 2. BUSCAR MEU PERFIL (ROTA PROTEGIDA)
+############################################################
+# O REST Client captura o 'token' que seu LoginService agora retorna no JSON.
+@authToken = {{login.response.body.accessToken}}
+
+GET {{baseUrl}}/users/me
+Content-Type: {{contentType}}
+# Esta é a forma correta com o plugin Bearer ativo:
+Authorization: Bearer {{authToken}}
+
+###
+
+############################################################
+# 3. TESTE DE ACESSO NEGADO (TOKEN INVÁLIDO)
+############################################################
+GET {{baseUrl}}/users/me
+Content-Type: {{contentType}}
+Authorization: Bearer token_que_nao_existe_123
+
+###
+
+############################################################
+# 4. TESTE SEM TOKEN (401 EXPECTED)
+############################################################
+GET {{baseUrl}}/users/me
+Content-Type: {{contentType}}

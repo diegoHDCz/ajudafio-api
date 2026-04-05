@@ -58,20 +58,17 @@ export async function authRoutes(app: FastifyInstance) {
   app.post('/login', async (request, reply) => {
     try {
       const { email, password } = request.body as any
-      const { user, session } = await loginService.execute({ email, password })
-
-      reply.setCookie('session_token', session.token, {
-        path: '/',
-        httpOnly: true,
-        secure: true,
-        sameSite: 'lax',
-        expires: session.expiresAt,
-      })
+      const result = await loginService.execute({ email, password })
 
       return reply.send({
-        user: { id: user.id, email: user.email, name: user.name },
-        token: session.token,
-        expiresAt: session.expiresAt,
+        message: 'Login realizado com sucesso',
+        user: {
+          id: result.user.id,
+          name: result.user.name,
+          email: result.user.email,
+          role: result.user.role,
+        },
+        accessToken: result.token,
       })
     } catch (err) {
       return reply.code(401).send({ error: 'Unauthorized' })

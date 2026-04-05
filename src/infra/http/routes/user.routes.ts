@@ -1,27 +1,38 @@
-// import { FastifyInstance } from 'fastify'
+import { FastifyInstance } from 'fastify'
 
-// import { requireAuth } from '../middlewares/auth.middleware'
-// import { Role } from '../../../domain/entities/role'
+import { requireAuth } from '../middlewares/auth.middleware'
+import { Role } from '../../../domain/entities/role'
+import { DrizzleUserRepository } from '../../repositories/user.repository.impl'
+import { GetUserService } from '../../../service/user/get-user.service'
 
-// interface UserRoutesDeps {
-//   getUserService: GetUserService
-// }
+export async function userRoutes(app: FastifyInstance) {
+  const userRepository = new DrizzleUserRepository()
+  const getUserService = new GetUserService(userRepository)
 
-// export async function userRoutes(app: FastifyInstance, deps: UserRoutesDeps) {
-//   const { getUserService } = deps
+  app.get(
+    '/me',
+    {
+      // O middleware valida o token e popula o request.user
+      preHandler: [requireAuth([Role.PROFESSIONAL, Role.ADMIN])],
+    },
+    async (request, reply) => {
+      // 1. O email vem do que o middleware injetou
+      const email = request.user?.email
 
-//   app.get(
-//     '/users/me',
-//     {
-//       preHandler: requireAuth([Role.CLIENT, Role.PROFESSIONAL, Role.ADMIN]),
-//     },
-//     async (request, reply) => {
-//       const user = request.user
+      if (!email) {
+        return reply
+          .code(401)
+          .send({ error: 'User email not found in session' })
+      }
 
-//       if (!user) {
-//         return reply.code(401).send({ error: 'Unauthorized' })
-//       }
-//       return reply.send(user)
-//     },
-//   )
-// }
+      // 2. Busca no seu serviço de domínio
+      const user = await getUserService.executeByEmail(email)
+
+      if (!user) {
+        return reply.code(404).send({ error: 'User not found in database' })
+      }
+
+      return reply.send(user)
+    },
+  )
+}

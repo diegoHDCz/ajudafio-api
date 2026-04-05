@@ -1,4 +1,4 @@
-// src/utils/logger.ts
+
 import { PinoLoggerOptions } from 'fastify/types/logger'
 
 export const loggerConfig: PinoLoggerOptions = {
