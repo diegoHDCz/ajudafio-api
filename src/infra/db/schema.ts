@@ -20,8 +20,8 @@ export const users = pgTable('users', {
   image: text('image'),
   telephone: text('telephone'),
   telephonWhatsapp: boolean('telephone_whatsapp').notNull().default(false),
-  secondTelephone: text('telephone'),
-  secondTelephonWhatsapp: boolean('telephone_whatsapp')
+  secondTelephone: text('second_telephone'),
+  secondTelephonWhatsapp: boolean('second_telephone_whatsapp')
     .notNull()
     .default(false),
   linkedin: text('linkedin'),

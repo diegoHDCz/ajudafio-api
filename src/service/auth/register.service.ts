@@ -37,7 +37,9 @@ export class RegisterService {
       createdAt: now,
       updatedAt: now,
       telephonWhatsapp: false,
-      secondTelephonWhatsapp: false
+      telephone: null,
+      secondTelephone: null,
+      secondTelephonWhatsapp: false,
     }
 
     const hashedPassword = await hashPassword(password)

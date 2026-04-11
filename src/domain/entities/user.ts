@@ -4,19 +4,19 @@ import { Role } from './role'
 export interface UserEntity {
   id: string
   email: string
-  name?: string
-  image?: string
+  name: string | null
+  image: string | null
   emailVerified: boolean
-  telephone?: string
+  telephone: string | null
   telephonWhatsapp: boolean
-  secondTelephone?: string | null
+  secondTelephone: string | null
   secondTelephonWhatsapp: boolean
-  linkedin?: string | null
-  instagram?: string | null
-  facebook?: string | null
+  linkedin: string | null
+  instagram: string | null
+  facebook: string | null
 
   role: Role
-  identificationNumber?: string
+  identificationNumber: string | null
   identificationType?: 'cpf' | 'cnpj'
 
   createdAt: Date

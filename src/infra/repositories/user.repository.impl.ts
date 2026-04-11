@@ -18,6 +18,10 @@ export class DrizzleUserRepository implements UserRepository {
       identificationNumber: user.identificationNumber,
       identificationType: user.identificationType,
       role: user.role,
+      telephone: user.telephone,
+      telephonWhatsapp: user.telephonWhatsapp,
+      secondTelephone: user.secondTelephone,
+      secondTelephonWhatsapp: user.secondTelephonWhatsapp,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     })

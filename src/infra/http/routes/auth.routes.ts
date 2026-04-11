@@ -45,7 +45,7 @@ export async function authRoutes(app: FastifyInstance) {
           details: error.message,
         })
       }
-
+;
       if (error instanceof Error && error.message === 'User already exists') {
         return reply.code(409).send({ error: 'Este e-mail já está em uso' })
       }
