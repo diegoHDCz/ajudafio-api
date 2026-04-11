@@ -27,7 +27,7 @@ export class RegisterService {
     }
     const userId = randomUUID()
     const now = new Date()
-
+  
     const user: UserEntity = {
       id: userId,
       email: email.toLowerCase(),
