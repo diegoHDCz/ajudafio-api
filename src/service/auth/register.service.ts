@@ -40,6 +40,12 @@ export class RegisterService {
       telephone: null,
       secondTelephone: null,
       secondTelephonWhatsapp: false,
+      linkedin: null,
+      instagram: null,
+      facebook: null,
+      identificationNumber: null,
+      identificationType: undefined,
+      image: null,
     }
 
     const hashedPassword = await hashPassword(password)
