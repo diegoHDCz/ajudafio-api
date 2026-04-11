@@ -7,10 +7,14 @@ export interface UserEntity {
   name?: string
   image?: string
   emailVerified: boolean
+  telephone?: string
+  telephonWhatsapp: boolean
+  secondTelephone?: string | null
+  secondTelephonWhatsapp: boolean
+  linkedin?: string | null
+  instagram?: string | null
+  facebook?: string | null
 
-  // Seus campos customizados
-  username?: string
-  fullName?: string
   role: Role
   identificationNumber?: string
   identificationType?: 'cpf' | 'cnpj'

@@ -15,12 +15,18 @@ import { relations } from 'drizzle-orm'
 export const users = pgTable('users', {
   id: uuid('id').defaultRandom().primaryKey(),
   email: text('email').notNull().unique(),
-  name: text('name'), // Better Auth standard
+  name: text('name'),
   emailVerified: boolean('email_verified').notNull().default(false),
   image: text('image'),
-
-  // Your Custom Fields
-
+  telephone: text('telephone'),
+  telephonWhatsapp: boolean('telephone_whatsapp').notNull().default(false),
+  secondTelephone: text('telephone'),
+  secondTelephonWhatsapp: boolean('telephone_whatsapp')
+    .notNull()
+    .default(false),
+  linkedin: text('linkedin'),
+  instagram: text('instagram'),
+  facebook: text('facebook'),
   identificationNumber: text('identification_number').unique(),
   identificationType: varchar('identification_type', { length: 20 }),
   role: varchar('role', { length: 20 }).notNull().default('CLIENT'),
@@ -78,12 +84,16 @@ export const professionals = pgTable('professionals', {
     .references(() => users.id, { onDelete: 'cascade' })
     .unique(),
   licenseNumber: text('license_number'),
-  specialty: text('specialty'),
+  category: text('category').notNull(),
   yearsOfExperience: integer('years_of_experience'),
+  verified: boolean('verified').notNull().default(false),
+  resume: text('resume'),
   metadata: jsonb('metadata').$type<{
     services: string[]
     locations: { city: string; state: string; type: string }[]
   }>(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })
 
 export const availabilities = pgTable('availabilities', {
@@ -92,8 +102,9 @@ export const availabilities = pgTable('availabilities', {
     .notNull()
     .references(() => professionals.id, { onDelete: 'cascade' }),
   dayOfWeek: integer('day_of_week').notNull(),
-  startHour: varchar('start_hour', { length: 5 }).notNull(),
-  endHour: varchar('end_hour', { length: 5 }).notNull(),
+  startHour: varchar('start_hour', { length: 5 }),
+  endHour: varchar('end_hour', { length: 5 }),
+  shift: varchar('shift', { length: 20 }),
 })
 
 export const contracts = pgTable('contracts', {
@@ -151,5 +162,41 @@ export const contractsRelations = relations(contracts, ({ one }) => ({
   professional: one(professionals, {
     fields: [contracts.professionalId],
     references: [professionals.id],
+  }),
+}))
+
+export const address = pgTable('addresses', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id').references(() => users.id, {
+    onDelete: 'cascade',
+  }),
+  contractId: uuid('contract_id').references(() => contracts.id, {
+    onDelete: 'cascade',
+  }),
+
+  zipCode: text('zip_code').notNull(),
+  addressLine: text('address_line').notNull(),
+  number: text('number').notNull(),
+  complement: text('complement'),
+  district: text('district').notNull(),
+  city: text('city').notNull(),
+  state: text('state').notNull(),
+  reference: text('reference'),
+
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at')
+    .defaultNow()
+    .notNull()
+    .$onUpdate(() => new Date()),
+})
+
+export const addressesRelations = relations(address, ({ one }) => ({
+  professional: one(professionals, {
+    fields: [address.userId],
+    references: [professionals.id],
+  }),
+  contract: one(contracts, {
+    fields: [address.contractId],
+    references: [contracts.id],
   }),
 }))

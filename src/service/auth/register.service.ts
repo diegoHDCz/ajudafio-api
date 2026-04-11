@@ -36,6 +36,8 @@ export class RegisterService {
       role: Role.CLIENT,
       createdAt: now,
       updatedAt: now,
+      telephonWhatsapp: false,
+      secondTelephonWhatsapp: false
     }
 
     const hashedPassword = await hashPassword(password)

@@ -36,6 +36,41 @@
       "when": 1775327265903,
       "tag": "0004_swift_stranger",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1775880026529,
+      "tag": "0005_slim_celestials",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1775880936600,
+      "tag": "0006_fearless_puck",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1775883686158,
+      "tag": "0007_tidy_blur",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1775884881308,
+      "tag": "0008_cooing_silver_centurion",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1775886277477,
+      "tag": "0009_tiny_lizard",
+      "breakpoints": true
     }
   ]
 }

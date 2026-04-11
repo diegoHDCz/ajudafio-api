@@ -13,7 +13,7 @@ export async function userRoutes(app: FastifyInstance) {
     '/me',
     {
       // O middleware valida o token e popula o request.user
-      preHandler: [requireAuth([Role.PROFESSIONAL, Role.ADMIN])],
+      preHandler: [requireAuth([Role.PROFESSIONAL, Role.ADMIN, Role.CLIENT])],
     },
     async (request, reply) => {
       // 1. O email vem do que o middleware injetou
