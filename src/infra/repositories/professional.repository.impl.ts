@@ -2,7 +2,8 @@ import { ProfessionalEntity } from '../../domain/entities/professional/professio
 import { ProfessionalRepository } from '../../domain/repositories/professional.repository'
 import { eq, InferSelectModel } from 'drizzle-orm'
 import { db } from '../db/drizzle'
-import { professionals } from '../db/schema'
+import { address, professionals, users } from '../db/schema'
+import { ListProfessionalDto } from '../../service/professional/dto/list-professional.dto'
 
 export type Professional = InferSelectModel<typeof professionals>
 
@@ -18,10 +19,14 @@ export class DrizzleProfessionalRepository implements ProfessionalRepository {
     return new ProfessionalEntity(row)
   }
 
-  async findAll(): Promise<ProfessionalEntity[]> {
-    const rows: Professional[] = await db.select().from(professionals)
+  async findAll(): Promise<ListProfessionalDto[]> {
+    const rows = await db
+      .select()
+      .from(professionals)
+      .leftJoin(users, eq(professionals.userId, users.id))
+      .leftJoin(address, eq(users.id, address.userId))
 
-    return rows.map((row) => new ProfessionalEntity(row as any))
+    return rows.map((row) => new ListProfessionalDto(row))
   }
 
   async save(professional: ProfessionalEntity): Promise<void> {

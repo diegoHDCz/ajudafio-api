@@ -1,8 +1,9 @@
+import { ListProfessionalDto } from '../../service/professional/dto/list-professional.dto'
 import { ProfessionalEntity } from '../entities/professional/professional'
 
 export interface ProfessionalRepository {
   findById(id: string): Promise<ProfessionalEntity | null>
-  findAll(): Promise<ProfessionalEntity[]>
+  findAll(): Promise<ListProfessionalDto[]>
   save(professional: ProfessionalEntity): Promise<void>
   update(
     id: string,
