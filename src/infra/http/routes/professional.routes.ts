@@ -4,16 +4,25 @@ import { requireAuth } from '../middlewares/auth.middleware'
 import { CreateProfessionalService } from '../../../service/professional/create-professional.service'
 import z from 'zod'
 import { ProfessionalCategory } from '../../../domain/entities/professional/professional-cateogry'
+import { ListProfessionalsService } from '../../../service/professional/list-professionals.service'
+import { logger } from '../../utils/logger'
 
-interface ProfessionalRoutesDeps {
+export interface ProfessionalRoutesDependencies {
   createProfessionalService: CreateProfessionalService
+  listProfessionalsService: ListProfessionalsService
 }
 
-export function professionalRoutes({
-  createProfessionalService,
-}: ProfessionalRoutesDeps) {
-  return async (app: FastifyInstance) => {
-    app.get('/professionals', async (request, reply) => {})
+export function professionalRoutes(deps: ProfessionalRoutesDependencies) {
+  return async function (app: FastifyInstance) {
+    const { createProfessionalService, listProfessionalsService } = deps
+
+    app.get('/list', async (request, reply) => {
+      const professionals = await listProfessionalsService.execute()
+      logger.info(
+        `Listando profissionais, total encontrado: ${professionals.length}`,
+      )
+      return reply.send(professionals)
+    })
 
     app.post(
       '',
