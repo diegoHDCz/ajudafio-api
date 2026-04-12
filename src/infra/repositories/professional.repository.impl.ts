@@ -7,6 +7,12 @@ import { ListProfessionalDto } from '../../service/professional/dto/list-profess
 
 export type Professional = InferSelectModel<typeof professionals>
 
+export type ProfessionalSelectRow = {
+  professionals: InferSelectModel<typeof professionals>
+  users: InferSelectModel<typeof users> | null
+  addresses: InferSelectModel<typeof address> | null
+}
+
 export class DrizzleProfessionalRepository implements ProfessionalRepository {
   async findById(id: string): Promise<ProfessionalEntity | null> {
     const [row]: Professional[] = await db
@@ -26,7 +32,9 @@ export class DrizzleProfessionalRepository implements ProfessionalRepository {
       .leftJoin(users, eq(professionals.userId, users.id))
       .leftJoin(address, eq(users.id, address.userId))
 
-    return rows.map((row) => new ListProfessionalDto(row))
+    return rows.map(
+      (row) => new ListProfessionalDto(row as ProfessionalSelectRow),
+    )
   }
 
   async save(professional: ProfessionalEntity): Promise<void> {
