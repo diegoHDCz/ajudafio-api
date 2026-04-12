@@ -1,5 +1,6 @@
 import { Role } from '../../domain/entities/role'
 import { UserRepository } from '../../domain/repositories/user.repository'
+import { logger } from '../../infra/utils/logger'
 
 export interface UpdateUserDTO {
   nomeCompleto: string
@@ -18,6 +19,14 @@ export interface UpdateUserDTO {
 export class DrizzleUpdateUserService {
   constructor(private userRepository: UserRepository) {}
   async execute(id: string, req: UpdateUserDTO): Promise<void> {
+    const user = await this.userRepository.findById(id)
+    if (!user) {
+      throw new Error('User not found')
+    }
+    logger.info(
+      `Atualizando usuário ${id} com os dados: ${JSON.stringify(req)}`,
+    )
+
     await this.userRepository.update(id, {
       name: req.nomeCompleto,
       role: req.role,
