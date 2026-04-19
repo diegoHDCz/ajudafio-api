@@ -20,7 +20,7 @@ Content-Type: {{contentType}}
 # 2. BUSCAR MEU PERFIL (ROTA PROTEGIDA)
 ############################################################
 # O REST Client captura o 'token' que seu LoginService agora retorna no JSON.
-@authToken = {{login.response.body.accessToken}}
+@authToken = c07ee86a-08a5-47fe-87fd-561762d4973b
 
 GET {{baseUrl}}/users/me
 Content-Type: {{contentType}}

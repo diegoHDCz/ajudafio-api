@@ -10,6 +10,24 @@ import {
   uniqueIndex,
 } from 'drizzle-orm/pg-core'
 import { relations, sql } from 'drizzle-orm'
+import { pgEnum } from 'drizzle-orm/pg-core'
+
+export const dayOfWeekEnum = pgEnum('day_of_week', [
+  'MONDAY',
+  'TUESDAY',
+  'WEDNESDAY',
+  'THURSDAY',
+  'FRIDAY',
+  'SATURDAY',
+  'SUNDAY',
+])
+
+export const shiftEnum = pgEnum('shift', [
+  'MORNING',
+  'AFTERNOON',
+  'NIGHT',
+  'FULL_DAY',
+])
 
 // --- 1. TABELAS DE AUTENTICAÇÃO (BETTER AUTH) ---
 
@@ -102,10 +120,15 @@ export const availabilities = pgTable('availabilities', {
   professionalId: uuid('professional_id')
     .notNull()
     .references(() => professionals.id, { onDelete: 'cascade' }),
-  dayOfWeek: integer('day_of_week').notNull(),
+
+  dayOfWeek: dayOfWeekEnum('day_of_week').notNull(),
+
+  // Modo turno
+  shift: shiftEnum('shift'),
+
+  // Modo horário livre (HH:MM) — usado quando shift é null
   startHour: varchar('start_hour', { length: 5 }),
   endHour: varchar('end_hour', { length: 5 }),
-  shift: varchar('shift', { length: 20 }),
 })
 
 export const contracts = pgTable('contracts', {
@@ -249,5 +272,12 @@ export const addressesRelations = relations(address, ({ one }) => ({
   contract: one(contracts, {
     fields: [address.contractId],
     references: [contracts.id],
+  }),
+}))
+
+export const availabilitiesRelations = relations(availabilities, ({ one }) => ({
+  professional: one(professionals, {
+    fields: [availabilities.professionalId],
+    references: [professionals.id],
   }),
 }))

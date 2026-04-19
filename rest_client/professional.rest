@@ -1,0 +1,53 @@
+@baseUrl = http://localhost:3000/api
+@contentType = application/json
+# O token abaixo deve ser o UUID da coluna 'token' na sua tabela 'sessions'
+@authToken = 749c5af4-9828-4764-99e0-dbd4a87a4ecc
+@professionalId = 4d8368d9-02b3-486a-b7bc-50850f6d1146
+
+### 1. Validar meu usuário (Teste de Auth)
+GET {{baseUrl}}/users/me
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+---
+
+### 2. Listar Profissionais (Rota Pública)
+GET {{baseUrl}}/professionals/list
+Content-Type: {{contentType}}
+
+---
+
+### 3. Buscar Detalhes de um Profissional
+GET {{baseUrl}}/professionals/{{professionalId}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+---
+
+### 4. Criar Novo Profissional
+POST {{baseUrl}}/professionals
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "userId": "2d0ba5ee-8ea2-49b9-804a-5c80a8f9ebb1",
+  "nomeCompleto": "João Silva",
+  "areaAtuacao": "PLUMBING",
+  "numeroRegistro": "CR-12345",
+  "resumoProfissional": "Especialista em manutenção hidráulica residencial.",
+  "telefone": "11999998888",
+  "telefoneWhatsapp": true,
+  "telefoneSecundario": null,
+  "telefoneSecundarioWhatsapp": false,
+  "linkedin": null,
+  "instagram": null,
+  "facebook": null,
+  "cep": "01234567",
+  "logradouro": "Rua Exemplo",
+  "numero": "50",
+  "complemento": null,
+  "bairro": "Bairro Teste",
+  "cidade": "São Paulo",
+  "uf": "SP",
+  "referencia": null
+}

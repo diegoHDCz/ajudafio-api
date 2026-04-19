@@ -94,9 +94,9 @@ export function professionalRoutes(deps: ProfessionalRoutesDependencies) {
         try {
           const professional = await detailProfessionalService.execute(id)
           return reply.send(professional)
-        } catch (error) {
+        } catch (error: Error | any) {
           logger.error(
-            { professionalId: id, error },
+            { professionalId: id, error: error.message },
             'Erro ao buscar detalhes do profissional',
           )
           return reply.code(500).send({
