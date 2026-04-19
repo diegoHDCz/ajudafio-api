@@ -2,6 +2,8 @@ import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { RegisterService } from '../../../service/auth/register.service'
 import { LoginService } from '../../../service/auth/login.service'
+import { request } from 'node:http'
+import { validateAuth } from '../middlewares/auth.middleware'
 
 export interface AuthRoutesDependencies {
   registerService: RegisterService
@@ -68,5 +70,13 @@ export function authRoutes(deps: AuthRoutesDependencies) {
         return reply.code(401).send({ error: 'Unauthorized' })
       }
     })
+
+    app.get(
+      '/validate',
+      { preHandler: validateAuth() },
+      async function (req, res) {
+        await res.send({ message: 'Autenticação válida!' })
+      },
+    )
   }
 }

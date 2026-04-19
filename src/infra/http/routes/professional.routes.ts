@@ -1,20 +1,27 @@
 import { FastifyInstance } from 'fastify'
 import { Role } from '../../../domain/entities/role'
 import { requireAuth } from '../middlewares/auth.middleware'
-import { CreateProfessionalService } from '../../../service/professional/create-professional.service'
+import { CreateProfessionalService } from '../../../service/professional/create-professional-usecase'
 import z from 'zod'
 import { ProfessionalCategory } from '../../../domain/entities/professional/professional-cateogry'
-import { ListProfessionalsService } from '../../../service/professional/list-professionals.service'
+import { ListProfessionalsService } from '../../../service/professional/list-professionals-usecase'
 import { logger } from '../../utils/logger'
+import { appendFile } from 'node:fs'
+import { DetailProfessionalUseCase } from '../../../service/professional/detail-usecase'
 
 export interface ProfessionalRoutesDependencies {
   createProfessionalService: CreateProfessionalService
   listProfessionalsService: ListProfessionalsService
+  detailProfessionalService: DetailProfessionalUseCase
 }
 
 export function professionalRoutes(deps: ProfessionalRoutesDependencies) {
   return async function (app: FastifyInstance) {
-    const { createProfessionalService, listProfessionalsService } = deps
+    const {
+      createProfessionalService,
+      listProfessionalsService,
+      detailProfessionalService,
+    } = deps
 
     app.get('/list', async (request, reply) => {
       const professionals = await listProfessionalsService.execute()
@@ -75,6 +82,28 @@ export function professionalRoutes(deps: ProfessionalRoutesDependencies) {
         return reply.send({
           message: 'Rota de registro de profissional - em construção',
         })
+      },
+    )
+    app.get(
+      '/:id',
+      {
+        preHandler: [requireAuth([Role.PROFESSIONAL, Role.ADMIN, Role.CLIENT])],
+      },
+      async (request, reply) => {
+        const { id } = request.params as { id: string }
+        try {
+          const professional = await detailProfessionalService.execute(id)
+          return reply.send(professional)
+        } catch (error) {
+          logger.error(
+            { professionalId: id, error },
+            'Erro ao buscar detalhes do profissional',
+          )
+          return reply.code(500).send({
+            error: 'Internal Server Error',
+            message: 'Ocorreu um erro ao buscar os detalhes do profissional.',
+          })
+        }
       },
     )
   }

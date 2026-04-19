@@ -12,6 +12,9 @@ export class ListProfessionalDto {
   category: ProfessionalCategory
   yearsOfExperience: number | null
   verified: boolean
+  addressLine: string | null
+  city: string | null
+  state: string | null
   resume: string | null
   metadata: Record<string, any>
   constructor(row: ProfessionalSelectRow) {
@@ -22,6 +25,9 @@ export class ListProfessionalDto {
     this.category = ProfessionalCategoryParser.fromString(
       row.professionals.category,
     )
+    this.city = row.addresses?.city || 'null'
+    this.addressLine = row.addresses?.addressLine || 'null'
+    this.state = row.addresses?.state || 'null'
     this.yearsOfExperience = row.professionals.yearsOfExperience
     this.verified = row.professionals.verified
     this.resume = row.professionals.resume

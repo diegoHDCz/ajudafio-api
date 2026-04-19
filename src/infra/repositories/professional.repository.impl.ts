@@ -2,8 +2,18 @@ import { ProfessionalEntity } from '../../domain/entities/professional/professio
 import { ProfessionalRepository } from '../../domain/repositories/professional.repository'
 import { eq, InferSelectModel } from 'drizzle-orm'
 import { db } from '../db/drizzle'
-import { address, professionals, users } from '../db/schema'
+import {
+  address,
+  availabilities,
+  professionals,
+  reviews,
+  users,
+} from '../db/schema'
 import { ListProfessionalDto } from '../../service/professional/dto/list-professional.dto'
+import {
+  ProfessionalDetailsDTO,
+  ProfessionalQueryResult,
+} from '../../service/professional/dto/professional-details.dto'
 
 export type Professional = InferSelectModel<typeof professionals>
 
@@ -13,16 +23,36 @@ export type ProfessionalSelectRow = {
   addresses: InferSelectModel<typeof address> | null
 }
 
+export type ProfessionalDetailsRow = {
+  professionals: InferSelectModel<typeof professionals>
+  users: InferSelectModel<typeof users> | null
+  reviews: InferSelectModel<typeof reviews> | null
+  addresses: InferSelectModel<typeof address> | null
+}
+
 export class DrizzleProfessionalRepository implements ProfessionalRepository {
-  async findById(id: string): Promise<ProfessionalEntity | null> {
-    const [row]: Professional[] = await db
-      .select()
-      .from(professionals)
-      .where(eq(professionals.id, id))
+  async findById(id: string): Promise<ProfessionalDetailsDTO | null> {
+    const result = await db.query.professionals.findFirst({
+      where: eq(professionals.id, id),
+      with: {
+        user: {
+          with: {
+            address: true,
+          },
+        },
+        reviews: {
+          limit: 3,
+          orderBy: (rev, { desc }) => [desc(reviews.createdAt)],
+        },
+        availabilities: true,
+      },
+    })
 
-    if (!row) return null
+    if (!result) return null
 
-    return new ProfessionalEntity(row)
+    return ProfessionalDetailsDTO.fromQueryResult(
+      result as ProfessionalQueryResult,
+    )
   }
 
   async findAll(): Promise<ListProfessionalDto[]> {

@@ -7,10 +7,11 @@ import {
   varchar,
   jsonb,
   boolean,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core'
-import { relations } from 'drizzle-orm'
+import { relations, sql } from 'drizzle-orm'
 
-// --- 1. BETTER AUTH REQUIRED TABLES ---
+// --- 1. TABELAS DE AUTENTICAÇÃO (BETTER AUTH) ---
 
 export const users = pgTable('users', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -75,7 +76,7 @@ export const verifications = pgTable('verifications', {
   updatedAt: timestamp('updated_at'),
 })
 
-// --- 2. YOUR DOMAIN TABLES (PROFESSIONALS & CONTRACTS) ---
+// --- 2. TABELAS DE DOMÍNIO (PROFISSIONAIS, CONTRATOS, REVIEWS) ---
 
 export const professionals = pgTable('professionals', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -133,37 +134,33 @@ export const contracts = pgTable('contracts', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 
-// --- 3. RELATIONS ---
-
-export const usersRelations = relations(users, ({ one, many }) => ({
-  professionalProfile: one(professionals, {
-    fields: [users.id],
-    references: [professionals.userId],
-  }),
-  contractsAsClient: many(contracts),
-  sessions: many(sessions),
-  accounts: many(accounts),
-}))
-
-export const professionalsRelations = relations(
-  professionals,
-  ({ one, many }) => ({
-    user: one(users, {
-      fields: [professionals.userId],
-      references: [users.id],
+export const reviews = pgTable(
+  'reviews',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    clientId: uuid('client_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    professionalId: uuid('professional_id')
+      .notNull()
+      .references(() => professionals.id, { onDelete: 'cascade' }),
+    contractId: uuid('contract_id').references(() => contracts.id, {
+      onDelete: 'set null',
     }),
-    availabilities: many(availabilities),
-    contracts: many(contracts),
+
+    rating: integer('rating').notNull(), // Sugestão: validar 1-5 na aplicação
+    comment: text('comment'),
+
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => ({
+    // Garante que um contrato só tenha um review (opcional, mas recomendado)
+    uniqueContractReview: uniqueIndex('unique_contract_review').on(
+      table.contractId,
+    ),
   }),
 )
-
-export const contractsRelations = relations(contracts, ({ one }) => ({
-  client: one(users, { fields: [contracts.clientId], references: [users.id] }),
-  professional: one(professionals, {
-    fields: [contracts.professionalId],
-    references: [professionals.id],
-  }),
-}))
 
 export const address = pgTable('addresses', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -190,10 +187,64 @@ export const address = pgTable('addresses', {
     .$onUpdate(() => new Date()),
 })
 
-export const addressesRelations = relations(address, ({ one }) => ({
+// --- 3. RELATIONS ---
+
+export const usersRelations = relations(users, ({ one, many }) => ({
+  professionalProfile: one(professionals, {
+    fields: [users.id],
+    references: [professionals.userId],
+  }),
+  address: one(address, {
+    fields: [users.id],
+    references: [address.userId],
+  }),
+  contractsAsClient: many(contracts),
+  sessions: many(sessions),
+  accounts: many(accounts),
+  reviewsMade: many(reviews),
+}))
+
+export const professionalsRelations = relations(
+  professionals,
+  ({ one, many }) => ({
+    user: one(users, {
+      fields: [professionals.userId],
+      references: [users.id],
+    }),
+    availabilities: many(availabilities),
+    contracts: many(contracts),
+    reviews: many(reviews),
+  }),
+)
+
+export const contractsRelations = relations(contracts, ({ one }) => ({
+  client: one(users, { fields: [contracts.clientId], references: [users.id] }),
   professional: one(professionals, {
-    fields: [address.userId],
+    fields: [contracts.professionalId],
     references: [professionals.id],
+  }),
+  review: one(reviews, {
+    fields: [contracts.id],
+    references: [reviews.contractId],
+  }),
+}))
+
+export const reviewsRelations = relations(reviews, ({ one }) => ({
+  client: one(users, { fields: [reviews.clientId], references: [users.id] }),
+  professional: one(professionals, {
+    fields: [reviews.professionalId],
+    references: [professionals.id],
+  }),
+  contract: one(contracts, {
+    fields: [reviews.contractId],
+    references: [contracts.id],
+  }),
+}))
+
+export const addressesRelations = relations(address, ({ one }) => ({
+  user: one(users, {
+    fields: [address.userId],
+    references: [users.id],
   }),
   contract: one(contracts, {
     fields: [address.contractId],

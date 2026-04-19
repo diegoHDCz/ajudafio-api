@@ -22,7 +22,6 @@ declare module 'fastify' {
 export function requireAuth(allowedRoles?: Role[]) {
   return async (request: FastifyRequest, reply: FastifyReply) => {
     try {
-      // 1. Extração Manual Segura (Evita o erro de TS que tivemos antes)
       const headers = {
         authorization: request.headers.authorization || '',
         cookie: request.headers.cookie || '',
@@ -85,6 +84,30 @@ export function requireAuth(allowedRoles?: Role[]) {
     } catch (err) {
       logger.error(err, 'Erro crítico no Middleware de Autenticação')
       return reply.code(500).send({ error: 'Internal Server Error' })
+    }
+  }
+}
+export function validateAuth() {
+  return async (request: FastifyRequest, reply: FastifyReply) => {
+    const headers = {
+      authorization: request.headers.authorization || '',
+      cookie: request.headers.cookie || '',
+      host: request.headers.host || '',
+      'x-forwarded-host': (request.headers['x-forwarded-host'] as string) || '',
+    }
+
+    // 2. Chamada para o Better Auth (O plugin bearer vai validar o Header aqui)
+    const session = await auth.api.getSession({ headers })
+
+    if (!session) {
+      logger.warn(
+        { path: request.url },
+        'Tentativa de acesso não autorizado: Sessão nula',
+      )
+      return reply.code(401).send({
+        error: 'Unauthorized',
+        message: 'Sessão inválida ou expirada. Faça login novamente.',
+      })
     }
   }
 }

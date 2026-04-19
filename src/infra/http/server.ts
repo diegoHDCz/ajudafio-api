@@ -16,8 +16,9 @@ import { LoginService } from '../../service/auth/login.service'
 import { GetUserService } from '../../service/user/get-user.service'
 import { DrizzleUpdateUserService } from '../../service/user/update-user.service'
 import { UpsertAddressService } from '../../service/address/upsert-address.service'
-import { CreateProfessionalService } from '../../service/professional/create-professional.service'
-import { ListProfessionalsService } from '../../service/professional/list-professionals.service'
+import { CreateProfessionalService } from '../../service/professional/create-professional-usecase'
+import { ListProfessionalsService } from '../../service/professional/list-professionals-usecase'
+import { DetailProfessionalUseCase } from '../../service/professional/detail-usecase'
 
 export async function buildServer() {
   const app = Fastify({
@@ -65,7 +66,9 @@ export async function buildServer() {
     updateUserService,
     upsertAddressService,
   )
-
+  const detailProfessionalService = new DetailProfessionalUseCase(
+    professionalRepository,
+  )
   await app.register(authRoutes({ registerService, loginService }), {
     prefix: '/api/auth',
   })
@@ -74,7 +77,11 @@ export async function buildServer() {
     prefix: '/api/users',
   })
   await app.register(
-    professionalRoutes({ createProfessionalService, listProfessionalsService }),
+    professionalRoutes({
+      createProfessionalService,
+      listProfessionalsService,
+      detailProfessionalService,
+    }),
     {
       prefix: '/api/professionals',
     },
